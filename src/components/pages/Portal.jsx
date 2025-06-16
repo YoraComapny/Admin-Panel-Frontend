@@ -221,7 +221,7 @@ const Portal = ({ children }) => {
               {open && (
                 <Link
                   className="absolute right-0 p-2 bg-white rounded-md z-50 min-w-[100px] flex gap-2 items-center justify-center font-sm transition hover:text-red-600 shadow-md"
-                  to="/admin/logout"
+                  to="/"
                 >
                   <CiLogout className="text-xl" />
                   <p>Logout</p>

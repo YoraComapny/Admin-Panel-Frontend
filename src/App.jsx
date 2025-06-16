@@ -76,7 +76,7 @@ function App() {
 
           <Route path="/admin/upload-status" element={<Upload />} />
 
-          <Route path="/admin/logout" element={<Logout />} />
+          <Route path="/" element={<Logout />} />
         </Routes>
         {/* <Portal /> */}
         <ToastContainer />

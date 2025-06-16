@@ -20,6 +20,7 @@ const Fixtures = () => {
     setLoading(true);
     const fetchFixtures = async () => {
       try {
+        console.log("Selected Date: before api call", selectedDate);
         const response = await getFixtures({
           date: selectedDate,
         });

@@ -1070,11 +1070,12 @@ export const deleteLeague = async (id) => {
 
 export const getFixtures = async (dateObj) => {
   try {
+    console.log("before api call");
     const res = await axios.get(
       `/fixture/get-by-date?fixtureDate=${dateObj.date}`
     );
 
-    console.log("res", res?.data);
+    console.log("after api call res", res?.data);
     return res.data;
   } catch (err) {
     console.error("Fixture API Error:", err);

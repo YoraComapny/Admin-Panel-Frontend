@@ -7,7 +7,11 @@ import MatchList from "../ManageLive/MatchList";
 import Location from "../global/Location";
 import Portal from "./Portal";
 import LoadingBall from "../global/LoadingBall";
-import { fetchAllMatches, updateMobileView } from "../../Api.js";
+import {
+  fetchAllMatches,
+  fetchMobileView,
+  updateMobileView,
+} from "../../Api.js";
 
 const ManageLive = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -59,7 +63,7 @@ const ManageLive = () => {
   }, [searchQuery, perPage]);
 
   useEffect(() => {
-    const isToggle = localStorage.getItem("Toggle");
+    const isToggle = localStorage.getItem("Toggle") === "true";
     console.log("isToggle", isToggle);
     setIsToggled(isToggle);
     fetchData();
