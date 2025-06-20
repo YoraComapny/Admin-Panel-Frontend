@@ -85,9 +85,10 @@ export const loginUser = async (user) => {
 export const createMatch = async (formData) => {
   try {
     const res = await axios.post(`/live/create-match`, formData);
+    console.log("Actual response ", res);
     return res;
   } catch (error) {
-    toast.error(`${error?.response?.data?.message}`, {
+    toast.error(`${error?.response?.data?.mesaage}`, {
       position: "top-right",
       autoClose: 5000,
       hideProgressBar: false,
@@ -97,6 +98,7 @@ export const createMatch = async (formData) => {
       progress: undefined,
       theme: "light",
     });
+    // console.log("Error is here ", error);
     return error;
   }
 };
@@ -1070,7 +1072,6 @@ export const deleteLeague = async (id) => {
 
 export const getFixtures = async (dateObj) => {
   try {
-    console.log("before api call");
     const res = await axios.get(
       `/fixture/get-by-date?fixtureDate=${dateObj.date}`
     );

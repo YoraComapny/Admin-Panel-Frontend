@@ -391,6 +391,7 @@ const CreateMatch = () => {
       const newData = { ...data, thumbnail: thumbnail };
 
       const res = await createMatch(newData);
+      console.log("1111111111----------res", res);
       if (res?.data?.success) {
         toast.success(`${res?.data?.message}`, {
           position: "top-right",
