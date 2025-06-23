@@ -51,7 +51,7 @@ const News = () => {
             <Location location={location} />
             <div className="flex justify-end ">
               <Link to="/admin/news/create-news">
-                <button className="p-2 font-normal text-xs uppercase text-white rounded-md bg-[#00a4e6] hover:bg-blue-900 transition w-max h-max active:scale-95">
+                <button className="p-2 font-normal text-xs uppercase text-white rounded-md bg-[#00a4e6]  transition w-max h-max active:scale-95">
                   + Add New News
                 </button>
               </Link>

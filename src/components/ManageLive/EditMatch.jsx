@@ -2,7 +2,7 @@
 // import { useEffect, useState } from "react";
 // import { updateMatch, getMatch } from "../../Api.js";
 // import { useLocation, useNavigate, useParams } from "react-router-dom";
-// import { FaRegArrowAltCircleUp } from "react-icons/fa";
+// import { FaRegArrowAltCircleUp, FaTimes } from "react-icons/fa";
 // import Portal from "../pages/Portal.jsx";
 // import Flatpickr from "react-flatpickr";
 // import "flatpickr/dist/themes/dark.css";
@@ -53,6 +53,7 @@
 //         stream_type: "",
 //         stream_url: "",
 //         stream_thumbnail: "",
+//         headers: [{ key: "", value: "", isDefault: true }],
 //       },
 //     ],
 //   });
@@ -114,7 +115,66 @@
 //     // Check if stream_type is "Restricted"
 //     if (name === "stream_type") {
 //       setShowRestrictedFields(value === "restricted");
+
+//       // Initialize headers array with a default entry if stream type is restricted
+//       if (
+//         value === "restricted" &&
+//         (!updatedStreamingSources[index].headers ||
+//           updatedStreamingSources[index].headers.length === 0)
+//       ) {
+//         updatedStreamingSources[index].headers = [
+//           { key: "", value: "", isDefault: true },
+//         ];
+//       }
 //     }
+
+//     setData({
+//       ...data,
+//       streaming_source: updatedStreamingSources,
+//     });
+//   };
+
+//   const handleHeaderChange = (e, streamIndex, headerIndex) => {
+//     const { name, value } = e.target;
+//     const updatedStreamingSources = [...data.streaming_source];
+
+//     if (!updatedStreamingSources[streamIndex].headers) {
+//       updatedStreamingSources[streamIndex].headers = [
+//         { key: "", value: "", isDefault: true },
+//       ];
+//     }
+
+//     updatedStreamingSources[streamIndex].headers[headerIndex][name] = value;
+
+//     setData({
+//       ...data,
+//       streaming_source: updatedStreamingSources,
+//     });
+//   };
+
+//   const addHeader = (e, index) => {
+//     e.preventDefault();
+//     const updatedStreamingSources = [...data.streaming_source];
+
+//     if (!updatedStreamingSources[index].headers) {
+//       updatedStreamingSources[index].headers = [];
+//     }
+
+//     updatedStreamingSources[index].headers.push({
+//       key: "",
+//       value: "",
+//       isDefault: false,
+//     });
+
+//     setData({
+//       ...data,
+//       streaming_source: updatedStreamingSources,
+//     });
+//   };
+
+//   const removeHeader = (streamIndex, headerIndex) => {
+//     const updatedStreamingSources = [...data.streaming_source];
+//     updatedStreamingSources[streamIndex].headers.splice(headerIndex, 1);
 
 //     setData({
 //       ...data,
@@ -143,6 +203,7 @@
 //           stream_type: "",
 //           stream_url: "",
 //           stream_thumbnail: "",
+//           headers: [],
 //         },
 //       ],
 //     });
@@ -208,6 +269,11 @@
 //             null,
 //             2
 //           );
+//         }
+
+//         // Initialize headers array if stream_type is restricted and headers don't exist
+//         if (source.stream_type === "restricted" && !source.headers) {
+//           source.headers = [{ key: "", value: "", isDefault: true }];
 //         }
 //       });
 
@@ -737,43 +803,83 @@
 
 //                           {/* Conditional fields that appear only when "restricted" is selected */}
 //                           {streaming?.stream_type === "restricted" && (
-//                             <div className="p-3 flex gap-5 bg-[#f9fafb] border shadow-md mb-5 rounded-md">
-//                               <div className="w-1/2">
-//                                 <label
-//                                   htmlFor="key"
-//                                   className="text-xs font-bold"
-//                                 >
-//                                   Key <span className="text-red-500">*</span>
-//                                 </label>
-//                                 <input
-//                                   type="text"
-//                                   className="w-full block p-1 rounded-md border border-gray-200"
-//                                   name="key"
-//                                   value={streaming.key || ""}
-//                                   onChange={(e) =>
-//                                     handleStreamingChange(e, index)
-//                                   }
-//                                 />
-//                               </div>
+//                             <>
+//                               {streaming.headers &&
+//                                 streaming.headers.map((header, headerIndex) => (
+//                                   <div
+//                                     key={headerIndex}
+//                                     className="p-3 flex gap-5 bg-[#f9fafb] border shadow-md mb-3 rounded-md ml-3 relative"
+//                                   >
+//                                     <div className="w-1/2">
+//                                       <label
+//                                         htmlFor={`key-${headerIndex}`}
+//                                         className="text-xs font-bold"
+//                                       >
+//                                         Key{" "}
+//                                         <span className="text-red-500">*</span>
+//                                       </label>
+//                                       <input
+//                                         type="text"
+//                                         className="w-full block p-1 rounded-md border border-gray-200"
+//                                         name="key"
+//                                         value={header.key || ""}
+//                                         onChange={(e) =>
+//                                           handleHeaderChange(
+//                                             e,
+//                                             index,
+//                                             headerIndex
+//                                           )
+//                                         }
+//                                       />
+//                                     </div>
 
-//                               <div className="w-1/2">
-//                                 <label
-//                                   htmlFor="value"
-//                                   className="text-xs font-bold"
+//                                     <div className="w-1/2">
+//                                       <label
+//                                         htmlFor={`value-${headerIndex}`}
+//                                         className="text-xs font-bold"
+//                                       >
+//                                         Value{" "}
+//                                         <span className="text-red-500">*</span>
+//                                       </label>
+//                                       <input
+//                                         type="text"
+//                                         className="w-full block p-1 rounded-md border border-gray-200"
+//                                         name="value"
+//                                         value={header.value || ""}
+//                                         onChange={(e) =>
+//                                           handleHeaderChange(
+//                                             e,
+//                                             index,
+//                                             headerIndex
+//                                           )
+//                                         }
+//                                       />
+//                                     </div>
+
+//                                     {!header.isDefault && (
+//                                       <button
+//                                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+//                                         onClick={() =>
+//                                           removeHeader(index, headerIndex)
+//                                         }
+//                                       >
+//                                         <FaTimes size={10} />
+//                                       </button>
+//                                     )}
+//                                   </div>
+//                                 ))}
+
+//                               {/* ============button start ================= */}
+//                               <div className="flex justify-end">
+//                                 <button
+//                                   className="text-xs my-4 font-medium right-12 bottom-5 bg-[#00a6e5] py-2 px-4 text-white uppercase transition active:scale-95 rounded-md shadow-lg"
+//                                   onClick={(e) => addHeader(e, index)}
 //                                 >
-//                                   Value <span className="text-red-500">*</span>
-//                                 </label>
-//                                 <input
-//                                   type="text"
-//                                   className="w-full block p-1 rounded-md border border-gray-200"
-//                                   name="value"
-//                                   value={streaming.value || ""}
-//                                   onChange={(e) =>
-//                                     handleStreamingChange(e, index)
-//                                   }
-//                                 />
+//                                   + Header
+//                                 </button>
 //                               </div>
-//                             </div>
+//                               {/* ============button end ================= */}
+//                             </>
 //                           )}
 //                         </div>
 //                       </form>
@@ -813,6 +919,8 @@
 
 // export default EditMatch;
 
+"use client";
+
 import Location from "../global/Location";
 import { useEffect, useState } from "react";
 import { updateMatch, getMatch } from "../../Api.js";
@@ -829,6 +937,9 @@ const EditMatch = () => {
   const [loading, setLoading] = useState(false);
   const [localDate, setLocalDate] = useState("");
   const [showRestrictedFields, setShowRestrictedFields] = useState(false);
+
+  // Validation errors state
+  const [errors, setErrors] = useState({});
 
   const defaultPortraitWatermark = {
     top: 1.1,
@@ -901,8 +1012,20 @@ const EditMatch = () => {
     streaming_source,
   } = data;
 
+  // Clear specific error when user starts typing
+  const clearError = (fieldName) => {
+    if (errors[fieldName]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    clearError(name);
 
     setData((prevState) => ({
       ...prevState,
@@ -912,6 +1035,8 @@ const EditMatch = () => {
 
   const handleTeamChange = (team, e) => {
     const { name, value } = e.target;
+    const fieldKey = `${team}.${name}`;
+    clearError(fieldKey);
 
     setData((prevState) => ({
       ...prevState,
@@ -924,6 +1049,9 @@ const EditMatch = () => {
 
   const handleStreamingChange = (e, index) => {
     const { name, value } = e.target;
+    const fieldKey = `streaming_source.${index}.${name}`;
+    clearError(fieldKey);
+
     const updatedStreamingSources = [...data.streaming_source];
     updatedStreamingSources[index][name] = value;
 
@@ -951,6 +1079,9 @@ const EditMatch = () => {
 
   const handleHeaderChange = (e, streamIndex, headerIndex) => {
     const { name, value } = e.target;
+    const fieldKey = `streaming_source.${streamIndex}.headers.${headerIndex}.${name}`;
+    clearError(fieldKey);
+
     const updatedStreamingSources = [...data.streaming_source];
 
     if (!updatedStreamingSources[streamIndex].headers) {
@@ -1028,6 +1159,7 @@ const EditMatch = () => {
 
   // set date handler
   const handleDateChange = (selectedDates) => {
+    clearError("match_time");
     if (selectedDates.length > 0) {
       const utcDate = moment(selectedDates[0]).utc();
       setLocalDate(utcDate.toDate());
@@ -1097,54 +1229,139 @@ const EditMatch = () => {
     }
   };
 
+  // Comprehensive validation function
   const validateFields = () => {
-    const validationArray = [];
+    const newErrors = {};
 
-    if (data?.sport_type === "") {
-      validationArray.push("Sport Type");
-    }
-    if (data?.match_title === "") {
-      validationArray.push("Match Title");
-    }
-    if (data?.league_type === "") {
-      validationArray.push("League Type");
-    }
-    if (data?.match_time === "") {
-      validationArray.push("Match Time");
-    }
-    if (data?.team_one.name === "") {
-      validationArray.push("Team One");
-    }
-    if (data?.team_two.name === "") {
-      validationArray.push("Team Two");
+    // Basic match information validation
+    if (!data.sport_type || data.sport_type.trim() === "") {
+      newErrors.sport_type = "Sport Type is required";
     }
 
-    if (validationArray.length !== 0)
-      return { status: false, data: validationArray };
+    if (!data.league_type || data.league_type.trim() === "") {
+      newErrors.league_type = "League Type is required";
+    }
 
-    return true;
+    if (!data.match_title || data.match_title.trim() === "") {
+      newErrors.match_title = "Match Title is required";
+    }
+
+    if (!data.match_time || data.match_time.trim() === "") {
+      newErrors.match_time = "Match Time is required";
+    }
+
+    // Team validation
+    if (!data.team_one.name || data.team_one.name.trim() === "") {
+      newErrors["team_one.name"] = "Team One name is required";
+    }
+
+    if (!data.team_two.name || data.team_two.name.trim() === "") {
+      newErrors["team_two.name"] = "Team Two name is required";
+    }
+
+    // Streaming source validation
+    data.streaming_source.forEach((stream, index) => {
+      if (!stream.streaming_title || stream.streaming_title.trim() === "") {
+        newErrors[`streaming_source.${index}.streaming_title`] =
+          "Streaming Title is required";
+      }
+
+      if (!stream.resolution || stream.resolution.trim() === "") {
+        newErrors[`streaming_source.${index}.resolution`] =
+          "Resolution is required";
+      }
+
+      if (!stream.status || stream.status.trim() === "") {
+        newErrors[`streaming_source.${index}.status`] = "Status is required";
+      }
+
+      if (!stream.stream_type || stream.stream_type.trim() === "") {
+        newErrors[`streaming_source.${index}.stream_type`] =
+          "Stream Type is required";
+      }
+
+      if (!stream.stream_url || stream.stream_url.trim() === "") {
+        newErrors[`streaming_source.${index}.stream_url`] =
+          "Stream URL is required";
+      }
+
+      // Validate headers for restricted streams
+      if (stream.stream_type === "restricted" && stream.headers) {
+        stream.headers.forEach((header, headerIndex) => {
+          if (!header.key || header.key.trim() === "") {
+            newErrors[`streaming_source.${index}.headers.${headerIndex}.key`] =
+              "Header key is required";
+          }
+          if (!header.value || header.value.trim() === "") {
+            newErrors[
+              `streaming_source.${index}.headers.${headerIndex}.value`
+            ] = "Header value is required";
+          }
+        });
+      }
+
+      // Validate JSON format for watermarks
+      try {
+        if (stream.portrait_watermark) {
+          JSON.parse(stream.portrait_watermark);
+        }
+      } catch (e) {
+        newErrors[`streaming_source.${index}.portrait_watermark`] =
+          "Invalid JSON format for Portrait Watermark";
+      }
+
+      try {
+        if (stream.landscape_watermark) {
+          JSON.parse(stream.landscape_watermark);
+        }
+      } catch (e) {
+        newErrors[`streaming_source.${index}.landscape_watermark`] =
+          "Invalid JSON format for Landscape Watermark";
+      }
+    });
+
+    return newErrors;
+  };
+
+  // Error display component
+  const ErrorMessage = ({ error }) => {
+    if (!error) return null;
+    return <p className="text-red-500 text-xs mt-1">{error}</p>;
   };
 
   // submits the form to the api
   const handleSubmit = async () => {
-    setLoading(true);
+    // Validate all fields
+    const validationErrors = validateFields();
 
-    const validationStatus = validateFields();
-    if (validationStatus !== true && !validationStatus.status) {
-      const missing = validationStatus.data.join(", ");
-      toast.error(`Missing fields: ${missing}`);
-      setLoading(false);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      toast.error("Please fix all validation errors before submitting");
+
+      // Scroll to first error
+      const firstErrorElement = document.querySelector(".border-red-500");
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+
       return false;
     }
+
+    setLoading(true);
 
     try {
       const res = await updateMatch(id, data);
       if (res?.data?.success) {
+        toast.success("Match updated successfully!");
         navigation("/admin/manage-live");
       }
       setLoading(false);
     } catch (error) {
       setLoading(false);
+      toast.error("Error updating match");
       console.error("Error updating match:", error);
     }
   };
@@ -1174,7 +1391,11 @@ const EditMatch = () => {
                     </label>
                     <div className="mt-2">
                       <select
-                        className="border rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full"
+                        className={`border rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full ${
+                          errors.sport_type
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
                         name="sport_type"
                         value={sport_type}
                         onChange={handleChange}
@@ -1183,6 +1404,7 @@ const EditMatch = () => {
                         <option value="football">Football</option>
                         <option value="sports">Sports</option>
                       </select>
+                      <ErrorMessage error={errors.sport_type} />
                     </div>
                   </div>
                   <div className="p-2 w-1/2">
@@ -1191,7 +1413,11 @@ const EditMatch = () => {
                     </label>
                     <div className="mt-2 text-xs">
                       <select
-                        className="border rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full text-sm"
+                        className={`border rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full text-sm ${
+                          errors.league_type
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
                         name="league_type"
                         value={league_type}
                         onChange={handleChange}
@@ -1243,6 +1469,7 @@ const EditMatch = () => {
                         </option>
                         <option value="serie-a">Serie A</option>
                       </select>
+                      <ErrorMessage error={errors.league_type} />
                     </div>
                   </div>
                 </div>
@@ -1254,11 +1481,16 @@ const EditMatch = () => {
                     </label>
                     <input
                       type="text"
-                      className="w-full block p-1 rounded-md border border-gray-200"
+                      className={`w-full block p-1 rounded-md border ${
+                        errors.match_title
+                          ? "border-red-500"
+                          : "border-gray-200"
+                      }`}
                       name="match_title"
                       value={match_title}
                       onChange={handleChange}
                     />
+                    <ErrorMessage error={errors.match_title} />
                   </div>
 
                   <div className="p-2 w-[33.3%] relative">
@@ -1266,7 +1498,9 @@ const EditMatch = () => {
                       Match Time <span className="text-red-500">*</span>
                     </label>
                     <Flatpickr
-                      className="border border-gray-300 cursor-pointer w-full rounded-md p-1 text-black"
+                      className={`border cursor-pointer w-full rounded-md p-1 text-black ${
+                        errors.match_time ? "border-red-500" : "border-gray-300"
+                      }`}
                       options={{
                         enableTime: true,
                         dateFormat: "Y-m-d H:i",
@@ -1277,6 +1511,7 @@ const EditMatch = () => {
                       value={localDate}
                       onChange={handleDateChange}
                     />
+                    <ErrorMessage error={errors.match_time} />
                     {localDate && (
                       <p className="text-xs mt-1">
                         Selected UTC time:{" "}
@@ -1346,13 +1581,21 @@ const EditMatch = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full block p-1 rounded-md border border-gray-200"
+                    className={`w-full block p-1 rounded-md border ${
+                      errors["team_one.name"]
+                        ? "border-red-500"
+                        : "border-gray-200"
+                    }`}
                     name="name"
                     value={team_one.name}
                     onChange={(e) => handleTeamChange("team_one", e)}
                   />
+                  <ErrorMessage error={errors["team_one.name"]} />
 
-                  <label htmlFor="sports-type" className="text-xs font-bold">
+                  <label
+                    htmlFor="sports-type"
+                    className="text-xs font-bold mt-2 block"
+                  >
                     Image URL
                   </label>
                   <input
@@ -1371,13 +1614,20 @@ const EditMatch = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full block p-1 rounded-md border border-gray-200"
+                    className={`w-full block p-1 rounded-md border ${
+                      errors["team_two.name"]
+                        ? "border-red-500"
+                        : "border-gray-200"
+                    }`}
                     name="name"
                     value={team_two.name}
                     onChange={(e) => handleTeamChange("team_two", e)}
                   />
+                  <ErrorMessage error={errors["team_two.name"]} />
 
-                  <label className="text-xs font-bold">Image URL</label>
+                  <label className="text-xs font-bold mt-2 block">
+                    Image URL
+                  </label>
                   <input
                     type="text"
                     className="w-full block p-1 rounded-md border border-gray-200"
@@ -1392,7 +1642,7 @@ const EditMatch = () => {
                   {data.streaming_source.map((streaming, index) => (
                     <div
                       key={index}
-                      className="flex flex-col p-2 border border-gray-200 rounded-md"
+                      className="flex flex-col p-2 border border-gray-200 rounded-md mb-4"
                     >
                       <form
                         action="submit"
@@ -1416,11 +1666,24 @@ const EditMatch = () => {
                               </label>
                               <input
                                 type="text"
-                                className="w-full block p-1 rounded-md border border-gray-200"
+                                className={`w-full block p-1 rounded-md border ${
+                                  errors[
+                                    `streaming_source.${index}.streaming_title`
+                                  ]
+                                    ? "border-red-500"
+                                    : "border-gray-200"
+                                }`}
                                 name="streaming_title"
                                 value={streaming.streaming_title}
                                 onChange={(e) =>
                                   handleStreamingChange(e, index)
+                                }
+                              />
+                              <ErrorMessage
+                                error={
+                                  errors[
+                                    `streaming_source.${index}.streaming_title`
+                                  ]
                                 }
                               />
                             </div>
@@ -1460,7 +1723,13 @@ const EditMatch = () => {
                               </label>
                               <div>
                                 <select
-                                  className="border border-gray-300 rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full"
+                                  className={`border rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full ${
+                                    errors[
+                                      `streaming_source.${index}.resolution`
+                                    ]
+                                      ? "border-red-500"
+                                      : "border-gray-300"
+                                  }`}
                                   name="resolution"
                                   value={streaming?.resolution}
                                   onChange={(e) =>
@@ -1473,6 +1742,13 @@ const EditMatch = () => {
                                   <option value="480p">480p</option>
                                   <option value="360p">360p</option>
                                 </select>
+                                <ErrorMessage
+                                  error={
+                                    errors[
+                                      `streaming_source.${index}.resolution`
+                                    ]
+                                  }
+                                />
                               </div>
                             </div>
 
@@ -1493,7 +1769,7 @@ const EditMatch = () => {
                                   }
                                   value={streaming?.platform}
                                 >
-                                  <option value="">Both</option>
+                                  <option value="both">Both</option>
                                   <option value="Android">Android</option>
                                   <option value="iOS">iOS</option>
                                 </select>
@@ -1511,14 +1787,27 @@ const EditMatch = () => {
                               </label>
                               <textarea
                                 placeholder="Enter json object..."
-                                className="block border border-gray-300 rounded-md p-2 w-full"
-                                name="potrait_watermark"
+                                className={`block border rounded-md p-2 w-full ${
+                                  errors[
+                                    `streaming_source.${index}.portrait_watermark`
+                                  ]
+                                    ? "border-red-500"
+                                    : "border-gray-300"
+                                }`}
+                                name="portrait_watermark"
                                 rows={5}
                                 value={streaming?.portrait_watermark}
                                 onChange={(e) =>
                                   handleStreamingChange(e, index)
                                 }
                               ></textarea>
+                              <ErrorMessage
+                                error={
+                                  errors[
+                                    `streaming_source.${index}.portrait_watermark`
+                                  ]
+                                }
+                              />
                             </div>
 
                             <div className="w-1/2">
@@ -1530,7 +1819,13 @@ const EditMatch = () => {
                               </label>
                               <textarea
                                 placeholder="Enter json object..."
-                                className="block border border-gray-300 rounded-md p-2 w-full"
+                                className={`block border rounded-md p-2 w-full ${
+                                  errors[
+                                    `streaming_source.${index}.landscape_watermark`
+                                  ]
+                                    ? "border-red-500"
+                                    : "border-gray-300"
+                                }`}
                                 name="landscape_watermark"
                                 rows={5}
                                 value={streaming?.landscape_watermark}
@@ -1538,6 +1833,13 @@ const EditMatch = () => {
                                   handleStreamingChange(e, index)
                                 }
                               ></textarea>
+                              <ErrorMessage
+                                error={
+                                  errors[
+                                    `streaming_source.${index}.landscape_watermark`
+                                  ]
+                                }
+                              />
                             </div>
                           </div>
 
@@ -1551,7 +1853,11 @@ const EditMatch = () => {
                               </label>
                               <div>
                                 <select
-                                  className="border border-gray-300 rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full"
+                                  className={`border rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full ${
+                                    errors[`streaming_source.${index}.status`]
+                                      ? "border-red-500"
+                                      : "border-gray-300"
+                                  }`}
                                   name="status"
                                   onChange={(e) =>
                                     handleStreamingChange(e, index)
@@ -1562,6 +1868,11 @@ const EditMatch = () => {
                                   <option value="active">Active</option>
                                   <option value="inactive">Inactive</option>
                                 </select>
+                                <ErrorMessage
+                                  error={
+                                    errors[`streaming_source.${index}.status`]
+                                  }
+                                />
                               </div>
                             </div>
 
@@ -1575,7 +1886,13 @@ const EditMatch = () => {
                               </label>
                               <div>
                                 <select
-                                  className="border border-gray-300 rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full"
+                                  className={`border rounded-md py-1 focus:outline-blue focus:ring-1 focus:ring-indigo-500 w-full ${
+                                    errors[
+                                      `streaming_source.${index}.stream_type`
+                                    ]
+                                      ? "border-red-500"
+                                      : "border-gray-300"
+                                  }`}
                                   name="stream_type"
                                   onChange={(e) =>
                                     handleStreamingChange(e, index)
@@ -1590,6 +1907,13 @@ const EditMatch = () => {
                                   <option value="m3u8">M3u8</option>
                                   <option value="web">Web</option>
                                 </select>
+                                <ErrorMessage
+                                  error={
+                                    errors[
+                                      `streaming_source.${index}.stream_type`
+                                    ]
+                                  }
+                                />
                               </div>
                             </div>
                           </div>
@@ -1606,11 +1930,20 @@ const EditMatch = () => {
                               </label>
                               <input
                                 type="text"
-                                className="w-full block p-1 rounded-md border border-gray-200"
+                                className={`w-full block p-1 rounded-md border ${
+                                  errors[`streaming_source.${index}.stream_url`]
+                                    ? "border-red-500"
+                                    : "border-gray-200"
+                                }`}
                                 name="stream_url"
                                 value={streaming.stream_url}
                                 onChange={(e) =>
                                   handleStreamingChange(e, index)
+                                }
+                              />
+                              <ErrorMessage
+                                error={
+                                  errors[`streaming_source.${index}.stream_url`]
                                 }
                               />
                             </div>
@@ -1635,7 +1968,13 @@ const EditMatch = () => {
                                       </label>
                                       <input
                                         type="text"
-                                        className="w-full block p-1 rounded-md border border-gray-200"
+                                        className={`w-full block p-1 rounded-md border ${
+                                          errors[
+                                            `streaming_source.${index}.headers.${headerIndex}.key`
+                                          ]
+                                            ? "border-red-500"
+                                            : "border-gray-200"
+                                        }`}
                                         name="key"
                                         value={header.key || ""}
                                         onChange={(e) =>
@@ -1644,6 +1983,13 @@ const EditMatch = () => {
                                             index,
                                             headerIndex
                                           )
+                                        }
+                                      />
+                                      <ErrorMessage
+                                        error={
+                                          errors[
+                                            `streaming_source.${index}.headers.${headerIndex}.key`
+                                          ]
                                         }
                                       />
                                     </div>
@@ -1658,7 +2004,13 @@ const EditMatch = () => {
                                       </label>
                                       <input
                                         type="text"
-                                        className="w-full block p-1 rounded-md border border-gray-200"
+                                        className={`w-full block p-1 rounded-md border ${
+                                          errors[
+                                            `streaming_source.${index}.headers.${headerIndex}.value`
+                                          ]
+                                            ? "border-red-500"
+                                            : "border-gray-200"
+                                        }`}
                                         name="value"
                                         value={header.value || ""}
                                         onChange={(e) =>
@@ -1669,10 +2021,18 @@ const EditMatch = () => {
                                           )
                                         }
                                       />
+                                      <ErrorMessage
+                                        error={
+                                          errors[
+                                            `streaming_source.${index}.headers.${headerIndex}.value`
+                                          ]
+                                        }
+                                      />
                                     </div>
 
                                     {!header.isDefault && (
                                       <button
+                                        type="button"
                                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
                                         onClick={() =>
                                           removeHeader(index, headerIndex)
@@ -1687,6 +2047,7 @@ const EditMatch = () => {
                               {/* ============button start ================= */}
                               <div className="flex justify-end">
                                 <button
+                                  type="button"
                                   className="text-xs my-4 font-medium right-12 bottom-5 bg-[#00a6e5] py-2 px-4 text-white uppercase transition active:scale-95 rounded-md shadow-lg"
                                   onClick={(e) => addHeader(e, index)}
                                 >
@@ -1702,6 +2063,7 @@ const EditMatch = () => {
                   ))}
                   <div className="flex justify-start">
                     <button
+                      type="button"
                       className="text-xs my-4 font-medium right-12 bottom-5 bg-[#00a6e5] py-2 px-4 text-white uppercase transition active:scale-95 rounded-md shadow-lg"
                       onClick={addStreamingSource}
                     >
@@ -1712,13 +2074,14 @@ const EditMatch = () => {
               </div>
             </div>
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={loading}
               className={`absolute text-xs font-medium right-12 bottom-[60px] py-2 px-4 text-white uppercase animate-bounce transition active:scale-95 rounded-md shadow-lg ${
                 loading ? "bg-gray-500" : "bg-[#00a6e5] "
               }`}
             >
-              Update Match
+              {loading ? "Updating..." : "Update Match"}
             </button>
 
             <FaRegArrowAltCircleUp

@@ -832,7 +832,8 @@ export const createNotification = async (notification) => {
       `/notifications/create-notification`,
       notification
     );
-    toast.success(`Notification created successfully!`, {
+    console.log("1111111---------NOtifcations", res?.data?.message);
+    toast.success(res?.data?.message || `Notification created  successfully!`, {
       position: "top-right",
       autoClose: 1000,
       hideProgressBar: false,

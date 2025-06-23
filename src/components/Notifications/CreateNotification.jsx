@@ -28,7 +28,7 @@ const CreateNotification = () => {
     };
     try {
       const res = await createNotification(notification);
-      console.log(res.status);
+      // console.log(res.status);
       navigation("/admin/notifications");
     } catch (err) {
       console.error(err);
@@ -82,10 +82,10 @@ const CreateNotification = () => {
 
             <div className="mt-2">
               <button
-                className="p-2 w-14 uppercase h-max bg-[#00a4e6] text-center text-xs text-white font-normal rounded-md shadow-md transition cursor-pointer active:scale-95"
+                className="p-2 w-32 uppercase h-max bg-[#00a4e6] text-center text-xs text-white font-normal rounded-md shadow-md transition cursor-pointer active:scale-95"
                 onClick={handleSubmit}
               >
-                Send
+                Create & Send
               </button>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { MdNotificationsActive } from "react-icons/md";
 import NotificationListItem from "./NotificationListItem";
 import NotificationGridItem from "./NotificationGridItem";
 
-const NotificationItem = ({ notification, isGrid }) => {
+const NotificationItem = ({ notification, isGrid, fetchData }) => {
   const [loading, setLoading] = useState(false);
 
   // Delete notif function
@@ -13,6 +13,9 @@ const NotificationItem = ({ notification, isGrid }) => {
     try {
       await deleteNotification(id);
       console.log("Notification deleted successfully");
+      if (fetchData) {
+        fetchData();
+      }
     } catch (error) {
       console.error("Error deleting notification:", error);
     } finally {
