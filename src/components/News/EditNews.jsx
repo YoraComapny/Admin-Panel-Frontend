@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import Location from "../global/Location";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
@@ -6,8 +8,6 @@ import "../../../node_modules/suneditor/dist/css/suneditor.min.css";
 import { editNews, getSingleNews } from "../../Api";
 import { toast } from "react-toastify";
 import Portal from "../pages/Portal";
-import Flatpickr from "react-flatpickr";
-import "flatpickr/dist/themes/dark.css";
 
 const AddNews = () => {
   const location = useLocation();
@@ -41,9 +41,78 @@ const AddNews = () => {
     status: "",
   });
 
+  // **FIXED: Utility function to strip HTML tags and decode HTML entities**
+  const stripHtmlTags = (html) => {
+    if (!html) return "";
+
+    // Create a temporary div element to parse HTML
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = html;
+
+    // Get text content and replace &nbsp; with regular spaces
+    let textContent = tempDiv.textContent || tempDiv.innerText || "";
+
+    // Replace common HTML entities
+    textContent = textContent
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+
+    return textContent.trim();
+  };
+
+  // **FIXED: Function to get current date and time**
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    return now.toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // **FIXED: Utility function to format date from API response**
+  const formatDateFromAPI = (dateString) => {
+    if (!dateString) return getCurrentDateTime();
+
+    try {
+      // If it's already in the correct format, return as is
+      if (typeof dateString === "string" && dateString.includes("/")) {
+        return dateString;
+      }
+
+      // Parse the date and format it
+      const date = new Date(dateString);
+      return date.toLocaleString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return getCurrentDateTime();
+    }
+  };
+
   useEffect(() => {
     if (id) {
       getNews();
+    } else {
+      // **FIXED: Set current date/time for new entries**
+      setData((prev) => ({
+        ...prev,
+        publish_date: getCurrentDateTime(),
+      }));
+      setLoading(false);
     }
   }, [id]);
 
@@ -52,10 +121,28 @@ const AddNews = () => {
     try {
       setLoading(true);
       const res = await getSingleNews(id);
-
+      console.log("111------", res?.data?.news);
       if (res?.data?.success && res?.data?.news) {
         const newsData = res.data.news;
-        setData(newsData);
+
+        // **FIXED: Process the data to handle HTML content properly**
+        const processedData = {
+          ...newsData,
+          // **FIXED: Format publish_date properly**
+          publish_date: formatDateFromAPI(newsData.publish_date),
+          source_type: {
+            other: {
+              source_name: newsData.source_type?.other?.source_name || "",
+              source_url: newsData.source_type?.other?.source_url || "",
+            },
+            own: {
+              // **FIXED: Keep HTML content for SunEditor, but ensure it's properly formatted**
+              my_article: newsData.source_type?.own?.my_article || "",
+            },
+          },
+        };
+
+        setData(processedData);
 
         // Set sourceType based on data structure
         if (
@@ -64,6 +151,7 @@ const AddNews = () => {
         ) {
           setSourceType("Others");
         } else if (newsData.source_type?.own?.my_article) {
+          console.log("22222222------", newsData.source_type?.own?.my_article);
           setSourceType("Own");
         }
 
@@ -101,7 +189,10 @@ const AddNews = () => {
         newErrors.source_url = "Source URL is required";
       }
     } else if (sourceType === "Own") {
-      if (!data.source_type.own.my_article.trim()) {
+      // **FIXED: Check for content in the article (strip HTML for validation)**
+      const articleText = stripHtmlTags(data.source_type.own.my_article);
+      console.log("articleText", articleText);
+      if (!articleText.trim()) {
         newErrors.my_article = "Article content is required";
       }
     }
@@ -234,21 +325,10 @@ const AddNews = () => {
     setErrors({ ...errors, [field]: "" });
   };
 
-  // Handle date change
-  const handleDateChange = (date) => {
-    if (date && date.length > 0) {
-      const selectedDateTime = new Date(date[0]);
-      const formattedDateTime = selectedDateTime.toLocaleString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-      setData({ ...data, publish_date: formattedDateTime });
-      setErrors({ ...errors, publish_date: "" });
-    }
+  // **FIXED: Handle publish date change (simple input)**
+  const handlePublishDateChange = (e) => {
+    setData({ ...data, publish_date: e.target.value });
+    setErrors({ ...errors, publish_date: "" });
   };
 
   // Handle editor change
@@ -279,10 +359,10 @@ const AddNews = () => {
     const data = new FormData();
 
     // Append form fields
-    for (let key in formData) {
+    for (const key in formData) {
       if (key === "source_type") {
-        for (let nestedKey in formData[key]) {
-          for (let nestedField in formData[key][nestedKey]) {
+        for (const nestedKey in formData[key]) {
+          for (const nestedField in formData[key][nestedKey]) {
             data.append(
               `source_type[${nestedKey}][${nestedField}]`,
               formData[key][nestedKey][nestedField]
@@ -544,6 +624,13 @@ const AddNews = () => {
                     </span>
                   )}
                 </label>
+                {/* **FIXED: Show plain text preview of the content** */}
+                {source_type?.own?.my_article && (
+                  <div className="mb-2 p-2 bg-gray-50 border rounded text-sm text-gray-600">
+                    <strong>Current content (plain text):</strong>{" "}
+                    {stripHtmlTags(source_type.own.my_article)}
+                  </div>
+                )}
                 <div
                   className={`${
                     errors.my_article ? "border border-red-500 rounded" : ""
@@ -695,7 +782,7 @@ const AddNews = () => {
                 <label className="font-semibold text-sm">Image Preview:</label>
                 <div className="border rounded-lg p-2 bg-gray-50">
                   <img
-                    src={imagePreview}
+                    src={imagePreview || "/placeholder.svg"}
                     alt="Preview"
                     className="max-w-full h-48 object-cover rounded mx-auto"
                     onError={(e) => {
@@ -707,7 +794,7 @@ const AddNews = () => {
               </div>
             )}
 
-            {/* Publish Date and Status */}
+            {/* **FIXED: Publish Date and Status** */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Publish Date */}
               <div className="space-y-1">
@@ -719,21 +806,22 @@ const AddNews = () => {
                     </span>
                   )}
                 </label>
-                <Flatpickr
+                <input
+                  type="text"
+                  placeholder="MM/DD/YYYY, HH:MM AM/PM"
                   className={`w-full border ${
                     errors.publish_date ? "border-red-500" : "border-gray-300"
                   } py-2 px-3 rounded outline-blue-400`}
-                  options={{
-                    enableTime: true,
-                    dateFormat: "Y-m-d h:i K",
-                    time_24hr: false,
-                  }}
                   value={publish_date}
-                  onChange={handleDateChange}
+                  onChange={handlePublishDateChange}
+                  readOnly
                 />
+                <p className="text-xs text-gray-500">
+                  Current date and time is automatically set
+                </p>
               </div>
 
-              {/* Status */}
+              {/* **FIXED: Status Field** */}
               <div className="space-y-1">
                 <label className="flex items-center gap-2 font-semibold text-sm">
                   Status <span className="text-red-600">*</span>

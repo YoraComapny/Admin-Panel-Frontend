@@ -60,7 +60,10 @@ const DateSelector = ({ onDateSelect }) => {
           }`}
           onClick={() => handleDateClick(date)}
         >
-          {index === 3 && <p className="font-bold text-white block">Today</p>}
+          {/* {index === 3 && <p className="font-bold text-white block">Today</p>} */}
+          {date.toDateString() === new Date().toDateString() && (
+            <p className="font-bold text-white block">Today</p>
+          )}
           <p>
             {date.getDate()}{" "}
             {date.toLocaleString("default", { month: "short" })}
